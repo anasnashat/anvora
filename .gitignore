@@ -1,0 +1,25 @@
+# Dependencies and build output
+**/node_modules/
+**/dist/
+**/.next/
+**/coverage/
+**/*.tsbuildinfo
+
+# Secrets and local environment
+**/.env
+**/.env.*
+!**/.env.example
+backend/token
+
+# Runtime data
+backend/auth_info_baileys/
+baileys_sessions/
+backend/uploads/
+backend/*.log
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.github/prompts/

@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  password     String
+  apiKey       String     @unique
+  plan         Plan       @default(STARTER)
+  planLimit    Int        @default(1000)
+  messagesSent Int        @default(0)
+  instances    Instance[]
+  contacts     Contact[]
+  templates    Template[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+enum Plan {
+  STARTER
+  PRO
+  ENTERPRISE
+}
+
+model Instance {
+  id          String         @id @default(uuid())
+  name        String
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId   String         @unique
+  status      InstanceStatus @default(DISCONNECTED)
+  phoneNumber String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  messages    MessageLog[]
+}
+
+model MessageLog {
+  id          String        @id @default(uuid())
+  instanceId  String
+  instance    Instance      @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  to          String
+  content     String
+  mediaType   MediaType? // Type of media (image, video, document, audio)
+  mediaUrl    String? // URL or path to media file
+  status      MessageStatus @default(QUEUED)
+  error       String? // Error message if failed
+  scheduledAt DateTime? // When message should be sent
+  createdAt   DateTime      @default(now())
+  sentAt      DateTime?
+
+  @@index([instanceId])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+enum InstanceStatus {
+  CONNECTING
+  CONNECTED
+  DISCONNECTED
+}
+
+enum MessageStatus {
+  QUEUED
+  SENDING
+  SENT
+  FAILED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  DOCUMENT
+  AUDIO
+}
+
+model Template {
+  id        String   @id @default(uuid())
+  name      String
+  content   String // Template content with {{variables}}
+  variables String[] // List of variable names used
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Contact {
+  id               String   @id @default(uuid())
+  name             String
+  phone            String
+  email            String?
+  tags             String[] @default([])
+  customAttributes Json?
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([userId, phone])
+  @@index([userId])
+  @@index([phone])
+}

@@ -1,0 +1,9 @@
+node_modules
+dist
+coverage
+.env*
+!.env.example
+auth_info_baileys
+uploads
+*.log
+token
